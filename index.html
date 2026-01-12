@@ -1,154 +1,543 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  />
-  <title>Команда</title>
-
-  <!-- Telegram Mini App SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ПАРНАС — Mini App (болванка)</title>
+  <meta name="color-scheme" content="dark" />
   <style>
-    :root {
-      --bg: #ffffff;
-      --text: #111111;
-      --hint: #6b7280;
-      --card: #f3f4f6;
-      --border: #e5e7eb;
+    :root{
+      --bg:#0b0f14;
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --line:rgba(255,255,255,.10);
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.08);
+      --accent:#36d6ff;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --r:18px;
+      --r2:24px;
+      --safe-b:env(safe-area-inset-bottom, 0px);
+      --safe-t:env(safe-area-inset-top, 0px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans",sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(54,214,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 100% 0%, rgba(0,169,214,.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      padding-top:calc(10px + var(--safe-t));
+      padding-bottom:calc(76px + var(--safe-b));
     }
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    /* Top */
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 16px 6px;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:grid;place-items:center;
+    }
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .titleblock{line-height:1.1}
+    .teamname{font-weight:900;letter-spacing:.4px;font-size:18px}
+    .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+
+    main{flex:1;padding:10px 16px 0}
+
+    .screen{display:none;animation:fade .18s ease-out}
+    @keyframes fade{from{opacity:.65;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .screen--home{display:block;} /* default */
+
+    /* Hash routing without JS */
+    #home:target ~ .app main .screen--home,
+    #lineup:target ~ .app main .screen--lineup,
+    #team:target ~ .app main .screen--team,
+    #me:target ~ .app main .screen--me{display:block}
+    #home:target ~ .app main .screen:not(.screen--home),
+    #lineup:target ~ .app main .screen:not(.screen--lineup),
+    #team:target ~ .app main .screen:not(.screen--team),
+    #me:target ~ .app main .screen:not(.screen--me){display:none}
+
+    /* Cards */
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid var(--line);
+      border-radius:var(--r2);
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin:12px 0;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::after{
+      content:"";
+      position:absolute;left:0;right:0;bottom:0;height:2px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity:.9;
+    }
+    .card h3{
+      margin:0 0 10px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:1.2px;
+    }
+    .card--dim{opacity:.62;filter:saturate(.9)}
+    .card--dim::after{opacity:.25}
+
+    .matchRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .versus{
+      font-weight:900;
+      font-size:16px;
+      letter-spacing:.3px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.20);
+      font-size:12px;
+      color:var(--text);
+      margin-top:8px;
+      width:max-content;
+    }
+    .meta{
+      display:grid;
+      gap:6px;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .meta span{display:flex;gap:8px;align-items:center}
+    .bigTimer{text-align:right;min-width:110px}
+    .bigTimer .num{font-size:28px;font-weight:950;line-height:1}
+    .bigTimer .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      border-radius:14px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-weight:800;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn--accent{
+      border-color:rgba(54,214,255,.45);
+      background:rgba(54,214,255,.12);
     }
 
-    .wrap {
-      padding: 16px 16px 76px;
-      max-width: 640px;
-      margin: 0 auto;
+    /* Arena wrapper */
+    .arena{
+      border-radius:var(--r2);
+      border:1px solid var(--line);
+      background:
+        radial-gradient(900px 500px at 50% 30%, rgba(54,214,255,.16), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin:12px 0;
+      position:relative;
+      overflow:hidden;
+    }
+    .arena::before{
+      content:"";
+      position:absolute;inset:-60px -40px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.05), transparent 40%),
+        linear-gradient(0deg, rgba(255,255,255,.05), transparent 45%);
+      transform:rotate(-6deg);
+      opacity:.65;
+      pointer-events:none;
+    }
+    .arenaHeader{position:relative;display:flex;justify-content:space-between;gap:12px}
+    .arenaHeader .h{font-weight:950;font-size:16px;letter-spacing:.3px}
+    .arenaHeader .s{font-size:12px;color:var(--muted);margin-top:4px}
+    .sectionTitle{
+      position:relative;
+      margin:14px 0 8px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:950;
+      letter-spacing:1.2px;
+    }
+    .divider{height:1px;background:var(--line);margin:12px 0;position:relative}
+
+    /* Player card */
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;z-index:1}
+    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;position:relative;z-index:1}
+
+    .playerCard{
+      position:relative;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:
+        radial-gradient(120px 120px at 20% 20%, rgba(54,214,255,.16), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      padding:10px 10px 12px;
+      overflow:hidden;
+      min-height:98px;
+    }
+    .playerCard::after{
+      content:"";
+      position:absolute;left:0;right:0;bottom:0;height:2px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity:.75;
+    }
+    .playerNum{
+      position:absolute;right:10px;top:8px;
+      font-weight:950;font-size:26px;
+      color:rgba(255,255,255,.16);
+      letter-spacing:.6px;
+    }
+    .playerName{
+      font-weight:950;font-size:13px;letter-spacing:.2px;
+      padding-right:46px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .playerRole{font-size:11px;color:var(--muted);margin-top:3px}
+    .playerStats{display:flex;gap:10px;margin-top:10px;font-size:11px;color:rgba(255,255,255,.78)}
+    .tag{
+      margin-top:8px;
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:11px;font-weight:950;
+      padding:6px 9px;border-radius:999px;
+      border:1px solid rgba(54,214,255,.35);
+      background:rgba(54,214,255,.10);
+      width:max-content;
     }
 
-    .title {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 6px 0 4px;
+    /* Standings table */
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      border-radius:var(--r2);
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      box-shadow:var(--shadow);
+    }
+    .table th,.table td{
+      padding:12px 12px;
+      font-size:13px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+    .table th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:1px;
+      font-weight:950;
+      background:rgba(0,0,0,.20);
+    }
+    .table tr:last-child td{border-bottom:none}
+    .rowMine td{background:rgba(54,214,255,.10)}
+    .pos{width:42px;font-weight:950}
+    .pts{width:70px;text-align:right;font-weight:950}
+
+    /* Bottom nav */
+    .nav{
+      position:fixed;left:0;right:0;bottom:0;
+      padding:10px 12px calc(10px + var(--safe-b));
+      background:rgba(10,14,20,.72);
+      backdrop-filter:blur(12px);
+      border-top:1px solid var(--line);
+      display:flex;gap:10px;justify-content:space-around;
+      z-index:10;
+    }
+    .nav a{
+      flex:1;
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      padding:10px 8px;border-radius:16px;
+      border:1px solid transparent;
+      color:var(--muted);
+      font-size:11px;font-weight:950;letter-spacing:.2px;
+    }
+    .nav a .ico{font-size:18px;line-height:1}
+
+    /* active tabs */
+    #home:target ~ .app .nav a[href="#home"],
+    #lineup:target ~ .app .nav a[href="#lineup"],
+    #team:target ~ .app .nav a[href="#team"],
+    #me:target ~ .app .nav a[href="#me"]{
+      color:var(--text);
+      border-color:rgba(54,214,255,.35);
+      background:rgba(54,214,255,.10);
+    }
+    /* default active when no hash */
+    .nav a[href="#home"]{
+      color:var(--text);
+      border-color:rgba(54,214,255,.35);
+      background:rgba(54,214,255,.10);
     }
 
-    .sub {
-      color: var(--hint);
-      margin: 0 0 14px;
-      font-size: 14px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin: 10px 0;
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .btns {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    button {
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .tabs {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      border-top: 1px solid var(--border);
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(8px);
-    }
-
-    .tab {
-      flex: 1;
-      padding: 12px 8px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--hint);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .tab.active {
-      color: var(--text);
-    }
-
-    .hidden { display: none; }
+    .hint{color:var(--muted);font-size:12px;margin-top:10px}
   </style>
+
+  <!-- (опционально) Telegram WebApp SDK — пока не используем -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="title">🏒 Команда</div>
-    <div class="sub" id="subtitle">Открыто как Mini App</div>
+  <!-- anchors for hash routing -->
+  <span id="home"></span>
+  <span id="lineup"></span>
+  <span id="team"></span>
+  <span id="me"></span>
 
-    <div id="screen-game" class="card">
-      <div class="row">
-        <div>
-          <div style="font-weight:800;">Ближайшая игра</div>
-          <div class="sub" style="margin:4px 0 0;">Ср, 21:00 · Лёд “Север”</div>
+  <div class="app">
+  <header class="topbar">
+    <div class="logo" aria-label="Логотип ПАРНАС">
+      <!-- Положи файл рядом: logo.jpg (или поменяй на logo.png) -->
+      <img alt="ПАРНАС" src="logo.jpg" />
+    </div>
+    <div class="titleblock">
+      <div class="teamname">ПАРНАС</div>
+      <div class="subtitle">Сезон 2025/26 • Лига</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section class="screen screen--home">
+      <div class="card">
+        <h3>БЛИЖАЙШАЯ ИГРА</h3>
+        <div class="matchRow">
+          <div style="min-width:0">
+            <div class="versus">ПАРНАС <span style="opacity:.75">🆚</span> Соперник</div>
+            <div class="pill">🏒 Регулярка</div>
+            <div class="meta">
+              <span>📅 18 января, 20:30</span>
+              <span>📍 Ледовая арена</span>
+            </div>
+          </div>
+
+          <div class="bigTimer">
+            <div class="num">2</div>
+            <div class="lbl">дня</div>
+          </div>
         </div>
-        <div style="font-weight:900;">9 / 15</div>
+
+        <div class="actions">
+          <a class="btn btn--accent" href="#lineup">🧊 Состав</a>
+          <a class="btn" href="#team">📊 Таблица</a>
+          <a class="btn" href="#me">📈 Моя стата</a>
+        </div>
       </div>
 
-      <div class="btns">
-        <button id="btn-yes">✅ Играю</button>
-        <button id="btn-maybe">❓ Под вопросом</button>
-        <button id="btn-no">❌ Не играю</button>
+      <!-- lineup status card (фиксирован) -->
+      <a class="card" href="#lineup" style="display:block">
+        <h3>СОСТАВ НА ИГРУ</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div style="font-weight:950;font-size:16px">✔ Зафиксирован</div>
+            <div class="hint">17 игроков • нажми, чтобы посмотреть звенья</div>
+          </div>
+          <div class="pill">→</div>
+        </div>
+      </a>
+
+      <!-- пример: ещё не зафиксирован -->
+      <div class="card card--dim">
+        <h3>СОСТАВ НА ИГРУ</h3>
+        <div style="font-weight:950;font-size:16px">⏳ Ещё не зафиксирован</div>
+        <div class="hint">Появится после того, как админ закроет голосование в группе</div>
+      </div>
+    </section>
+
+    <!-- LINEUP -->
+    <section class="screen screen--lineup">
+      <div class="arena">
+        <div class="arenaHeader">
+          <div>
+            <div class="h">Состав на игру</div>
+            <div class="s">ПАРНАС vs Соперник • 18 янв, 20:30</div>
+          </div>
+          <div class="pill">✔ Fixed</div>
+        </div>
+
+        <div class="sectionTitle">🧤 ВРАТАРИ</div>
+        <div class="grid2">
+          <div class="playerCard">
+            <div class="playerNum">#30</div>
+            <div class="playerName">Иван Иванов</div>
+            <div class="playerRole">Вратарь</div>
+            <div class="playerStats"><div>Игр: 8</div><div>Сейвы: 91%</div></div>
+            <div class="tag">✔ В составе</div>
+          </div>
+          <div class="playerCard">
+            <div class="playerNum">#1</div>
+            <div class="playerName">Пётр Петров</div>
+            <div class="playerRole">Вратарь</div>
+            <div class="playerStats"><div>Игр: 4</div><div>Сейвы: 89%</div></div>
+            <div class="tag">✔ В составе</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sectionTitle">⚡ 1 ЗВЕНО</div>
+        <div class="grid3">
+          <div class="playerCard">
+            <div class="playerNum">#17</div>
+            <div class="playerName">Алексей Смирнов</div>
+            <div class="playerRole">LW</div>
+            <div class="playerStats"><div>Г: 7</div><div>П: 9</div></div>
+            <div class="tag">✔ В составе</div>
+          </div>
+          <div class="playerCard">
+            <div class="playerNum">#9</div>
+            <div class="playerName">Дмитрий Орлов</div>
+            <div class="playerRole">C</div>
+            <div class="playerStats"><div>Г: 5</div><div>П: 6</div></div>
+            <div class="tag">✔ В составе</div>
+          </div>
+          <div class="playerCard">
+            <div class="playerNum">#21</div>
+            <div class="playerName">Сергей Кузнецов</div>
+            <div class="playerRole">RW</div>
+            <div class="playerStats"><div>Г: 4</div><div>П: 7</div></div>
+            <div class="tag">✔ В составе</div>
+          </div>
+        </div>
+
+        <div class="sectionTitle">⚡ 2 ЗВЕНО</div>
+        <div class="grid3">
+          <div class="playerCard"><div class="playerNum">#14</div><div class="playerName">Игрок</div><div class="playerRole">LW</div><div class="playerStats"><div>Г: 2</div><div>П: 3</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#11</div><div class="playerName">Игрок</div><div class="playerRole">C</div><div class="playerStats"><div>Г: 1</div><div>П: 4</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#77</div><div class="playerName">Игрок</div><div class="playerRole">RW</div><div class="playerStats"><div>Г: 3</div><div>П: 1</div></div><div class="tag">✔ В составе</div></div>
+        </div>
+
+        <div class="sectionTitle">⚡ 3 ЗВЕНО</div>
+        <div class="grid3">
+          <div class="playerCard"><div class="playerNum">#33</div><div class="playerName">Игрок</div><div class="playerRole">LW</div><div class="playerStats"><div>Г: 0</div><div>П: 2</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#16</div><div class="playerName">Игрок</div><div class="playerRole">C</div><div class="playerStats"><div>Г: 1</div><div>П: 0</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#8</div><div class="playerName">Игрок</div><div class="playerRole">RW</div><div class="playerStats"><div>Г: 2</div><div>П: 1</div></div><div class="tag">✔ В составе</div></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sectionTitle">🏒 ПАРЫ ЗАЩИТНИКОВ</div>
+        <div class="grid2">
+          <div class="playerCard"><div class="playerNum">#4</div><div class="playerName">Защитник</div><div class="playerRole">LD</div><div class="playerStats"><div>+/-: +3</div><div>Штр: 2</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#5</div><div class="playerName">Защитник</div><div class="playerRole">RD</div><div class="playerStats"><div>+/-: +1</div><div>Штр: 0</div></div><div class="tag">✔ В составе</div></div>
+
+          <div class="playerCard"><div class="playerNum">#24</div><div class="playerName">Защитник</div><div class="playerRole">LD</div><div class="playerStats"><div>+/-: 0</div><div>Штр: 4</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#2</div><div class="playerName">Защитник</div><div class="playerRole">RD</div><div class="playerStats"><div>+/-: -1</div><div>Штр: 2</div></div><div class="tag">✔ В составе</div></div>
+
+          <div class="playerCard"><div class="playerNum">#18</div><div class="playerName">Защитник</div><div class="playerRole">LD</div><div class="playerStats"><div>+/-: +2</div><div>Штр: 0</div></div><div class="tag">✔ В составе</div></div>
+          <div class="playerCard"><div class="playerNum">#19</div><div class="playerName">Защитник</div><div class="playerRole">RD</div><div class="playerStats"><div>+/-: +2</div><div>Штр: 2</div></div><div class="tag">✔ В составе</div></div>
+        </div>
+
+        <div class="hint">*Это болванка. Потом добавим “запас”, капитана и т.д.</div>
+      </div>
+    </section>
+
+    <!-- TEAM -->
+    <section class="screen screen--team">
+      <div class="card">
+        <h3>ТУРНИРНАЯ ТАБЛИЦА</h3>
+        <table class="table">
+          <thead>
+            <tr><th class="pos">#</th><th>Команда</th><th class="pts">Очки</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="pos">1</td><td>Команда А</td><td class="pts">24</td></tr>
+            <tr class="rowMine"><td class="pos">2</td><td>ПАРНАС</td><td class="pts">22</td></tr>
+            <tr><td class="pos">3</td><td>Команда B</td><td class="pts">20</td></tr>
+            <tr><td class="pos">4</td><td>Команда C</td><td class="pts">18</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="sub" id="status" style="margin-top:10px;">Статус: не выбран</div>
-    </div>
-
-    <div id="screen-table" class="card hidden">
-      <div style="font-weight:800;">📊 Таблица</div>
-      <div class="sub" style="margin-top:6px;">
-        Здесь позже будет таблица лиги (с сортировкой).
+      <div class="card">
+        <h3>СОСТАВ КОМАНДЫ</h3>
+        <div class="grid2">
+          <div class="playerCard"><div class="playerNum">#17</div><div class="playerName">Алексей Смирнов</div><div class="playerRole">Нападающий</div><div class="playerStats"><div>Очк: 16</div><div>+/-: +5</div></div><div class="tag">🏒 Профиль</div></div>
+          <div class="playerCard"><div class="playerNum">#4</div><div class="playerName">Илья Соколов</div><div class="playerRole">Защитник</div><div class="playerStats"><div>Очк: 6</div><div>+/-: +3</div></div><div class="tag">🏒 Профиль</div></div>
+          <div class="playerCard"><div class="playerNum">#30</div><div class="playerName">Иван Иванов</div><div class="playerRole">Вратарь</div><div class="playerStats"><div>Сейвы: 91%</div><div>Игр: 8</div></div><div class="tag">🏒 Профиль</div></div>
+          <div class="playerCard"><div class="playerNum">#9</div><div class="playerName">Дмитрий Орлов</div><div class="playerRole">Нападающий</div><div class="playerStats"><div>Очк: 11</div><div>Штр: 2</div></div><div class="tag">🏒 Профиль</div></div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div id="screen-me" class="card hidden">
-      <div style="font-weight:800;">👤 Я</div>
-      <div class="sub" style="margin-top:6px;">
-        Здесь позже будет “моя статистика” (Telegram user → профиль).
+    <!-- ME -->
+    <section class="screen screen--me">
+      <div class="card">
+        <h3>МОЙ ПРОФИЛЬ</h3>
+        <div class="playerCard" style="min-height:120px">
+          <div class="playerNum">#17</div>
+          <div class="playerName">Алексей Смирнов</div>
+          <div class="playerRole">Нападающий</div>
+          <div class="playerStats" style="margin-top:14px">
+            <div>Матчи: 12</div><div>Г: 7</div><div>П: 9</div><div>Очк: 16</div>
+          </div>
+          <div class="tag">🔥 Форма: хорошая</div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="game">🏒 Игра</div>
-    <div class="tab" data-tab="table">📊 Таблица</div>
-    <div class="tab" data-tab="me">👤 Я</div>
-  </div>
+      <div class="card">
+        <h3>СТАТИСТИКА СЕЗОНА</h3>
+        <div class="meta" style="gap:10px">
+          <span>🏒 Матчи: <b style="margin-left:6px">12</b></span>
+          <span>🥅 Голы: <b style="margin-left:6px">7</b></span>
+          <span>🎯 Передачи: <b style="margin-left:6px">9</b></span>
+          <span>⭐ Очки: <b style="margin-left:6px">16</b></span>
+          <span>➕/➖: <b style="margin-left:6px">+5</b></span>
+          <span>⏱ Штраф: <b style="margin-left:6px">4</b> мин</span>
+        </div>
+        <div class="hint">Дальше сюда можно добавить “последние 5 игр” и график формы.</div>
+      </div>
+    </section>
+  </main>
 
-  <script src="./app.js"></script>
-</body>
-</html>
+  <nav class="nav" aria-label="Навигация">
+    <a href="#home"><div class="ico">🏠</div><div>Главная</div></a>
+    <a href="#lineup"><div class="ico">🧊</div><div>Состав</div></a>
+    <a href="#team"><div class="ico">👥</div><div>Команда</div></a>
+    <a href="#me"><div class="ico">📈</div><div>Я</div></a>
+  </nav>
+</div>
+
+<script>
+  // Пока без логики.
+  // Позже можно раскомментировать, чтобы Mini App корректно “заводилась” в Telegram:
+  // if (window.Telegram?.WebApp) Telegram.WebApp.ready();
+</script>
+
