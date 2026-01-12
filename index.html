@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
+  <title>Команда</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --hint: #6b7280;
+      --card: #f3f4f6;
+      --border: #e5e7eb;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      padding: 16px 16px 76px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 6px 0 4px;
+    }
+
+    .sub {
+      color: var(--hint);
+      margin: 0 0 14px;
+      font-size: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 10px 0;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tabs {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--hint);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tab.active {
+      color: var(--text);
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">🏒 Команда</div>
+    <div class="sub" id="subtitle">Открыто как Mini App</div>
+
+    <div id="screen-game" class="card">
+      <div class="row">
+        <div>
+          <div style="font-weight:800;">Ближайшая игра</div>
+          <div class="sub" style="margin:4px 0 0;">Ср, 21:00 · Лёд “Север”</div>
+        </div>
+        <div style="font-weight:900;">9 / 15</div>
+      </div>
+
+      <div class="btns">
+        <button id="btn-yes">✅ Играю</button>
+        <button id="btn-maybe">❓ Под вопросом</button>
+        <button id="btn-no">❌ Не играю</button>
+      </div>
+
+      <div class="sub" id="status" style="margin-top:10px;">Статус: не выбран</div>
+    </div>
+
+    <div id="screen-table" class="card hidden">
+      <div style="font-weight:800;">📊 Таблица</div>
+      <div class="sub" style="margin-top:6px;">
+        Здесь позже будет таблица лиги (с сортировкой).
+      </div>
+    </div>
+
+    <div id="screen-me" class="card hidden">
+      <div style="font-weight:800;">👤 Я</div>
+      <div class="sub" style="margin-top:6px;">
+        Здесь позже будет “моя статистика” (Telegram user → профиль).
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="game">🏒 Игра</div>
+    <div class="tab" data-tab="table">📊 Таблица</div>
+    <div class="tab" data-tab="me">👤 Я</div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
